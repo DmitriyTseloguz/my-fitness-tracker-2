@@ -125,6 +125,12 @@ func (t Training) distance() float64 {
 
 // meanSpeed возвращает среднюю скорость бега или ходьбы.
 func (t Training) meanSpeed() float64 {
+	var hours = t.Duration.Hours()
+
+	if hours == 0 {
+		return 0
+	}
+
 	return t.distance() / t.Duration.Hours()
 }
 
@@ -170,6 +176,10 @@ type Walking struct {
 
 // Calories возвращает количество потраченных килокалорий при ходьбе.
 func (w Walking) Calories() float64 {
+	if w.Height == 0 {
+		return 0
+	}
+
 	var wieghtRation = CaloriesWeightMultiplier * w.Weight
 	var speedSquareMeters = math.Pow(w.meanSpeed()*KmHInMsec, 2.0)
 	var heightInMeters = w.Height / CmInM
@@ -190,11 +200,14 @@ type Swimming struct {
 }
 
 // meanSpeed возвращает среднюю скорость при плавании.
-// Формула расчета:
-// длина_бассейна * количество_пересечений / м_в_км / продолжительность_тренировки
-// Это переопределенный метод Calories() из Training.
 func (s Swimming) meanSpeed() float64 {
-	return float64(s.PoolLength) * float64(s.PoolCount) / MInKm / s.Duration.Hours()
+	var hours = s.Duration.Hours()
+
+	if hours == 0 {
+		return 0
+	}
+
+	return float64(s.PoolLength) * float64(s.PoolCount) / MInKm / hours
 }
 
 // Calories возвращает количество калорий, потраченных при плавании.
@@ -206,5 +219,9 @@ func (s Swimming) Calories() float64 {
 
 // TrainingInfo returns info about swimming training.
 func (s Swimming) TrainingInfo() InfoMessage {
-	return s.Training.TrainingInfo()
+	var info = s.Training.TrainingInfo()
+	info.Speed = s.meanSpeed()
+	info.Calories = s.Calories()
+
+	return info
 }
